@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChurnAI - Customer Churn Prediction</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0F1117;
+            color: #E0E0E0;
+            min-height: 100vh;
+        }
+
+        /* ── Navbar ── */
+        .navbar {
+            background: #1A1A2E;
+            padding: 16px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #2D2D3F;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo { font-size: 22px; font-weight: 700; color: #4E9AF1; }
+        .logo span { color: #00C897; }
+        .nav-links a {
+            color: #A0A0B0;
+            text-decoration: none;
+            margin-left: 30px;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: #4E9AF1; }
+
+        /* ── Hero ── */
+        .landing {
+            min-height: 92vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 60px 20px;
+            background: radial-gradient(ellipse at 50% 0%,
+                #1a2a4a 0%, #0F1117 60%);
+        }
+        .landing-badge {
+            background: #1A1A2E;
+            border: 1px solid #2D2D3F;
+            border-radius: 20px;
+            padding: 6px 18px;
+            font-size: 12px;
+            color: #4E9AF1;
+            margin-bottom: 24px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .landing h1 {
+            font-size: 58px;
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg,
+                #4E9AF1 0%, #A78BFA 50%, #00C897 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .landing p {
+            font-size: 18px;
+            color: #A0A0B0;
+            max-width: 580px;
+            line-height: 1.7;
+            margin-bottom: 40px;
+        }
+        .hero-btns { display: flex; gap: 16px; justify-content: center; }
+        .btn-primary {
+            background: linear-gradient(135deg, #4E9AF1, #A78BFA);
+            color: white; border: none;
+            padding: 14px 32px; border-radius: 10px;
+            font-size: 15px; font-weight: 600;
+            cursor: pointer; text-decoration: none;
+            transition: opacity 0.2s, transform 0.2s;
+            display: inline-block;
+        }
+        .btn-primary:hover { opacity: 0.9; transform: translateY(-2px); }
+        .btn-secondary {
+            background: transparent; color: #E0E0E0;
+            border: 1px solid #2D2D3F;
+            padding: 14px 32px; border-radius: 10px;
+            font-size: 15px; font-weight: 600;
+            cursor: pointer; text-decoration: none;
+            transition: border-color 0.2s, transform 0.2s;
+            display: inline-block;
+        }
+        .btn-secondary:hover {
+            border-color: #4E9AF1;
+            transform: translateY(-2px);
+        }
+
+        /* ── Sections ── */
+        .section {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 80px 40px;
+        }
+        .section-title {
+            text-align: center;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .section-sub {
+            text-align: center;
+            color: #A0A0B0;
+            margin-bottom: 50px;
+            font-size: 15px;
+        }
+
+        /* ── Features ── */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+        .feature-card {
+            background: #1A1A2E;
+            border: 1px solid #2D2D3F;
+            border-radius: 14px;
+            padding: 28px;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: #4E9AF1;
+        }
+        .feature-icon { font-size: 36px; margin-bottom: 16px; }
+        .feature-card h3 {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .feature-card p {
+            color: #A0A0B0;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* ── Stats Banner ── */
+        .stats-banner {
+            background: #1A1A2E;
+            border-top: 1px solid #2D2D3F;
+            border-bottom: 1px solid #2D2D3F;
+            padding: 50px 40px;
+        }
+        .stats-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            text-align: center;
+        }
+        .stat-item .val {
+            font-size: 36px;
+            font-weight: 700;
+            color: #4E9AF1;
+            margin-bottom: 6px;
+        }
+        .stat-item .lbl { font-size: 13px; color: #A0A0B0; }
+
+        /* ── Steps ── */
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+        .step-card {
+            background: #1A1A2E;
+            border: 1px solid #2D2D3F;
+            border-radius: 14px;
+            padding: 24px;
+            text-align: center;
+        }
+        .step-num {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, #4E9AF1, #A78BFA);
+            border-radius: 50%;
+            display: flex; align-items: center;
+            justify-content: center;
+            font-weight: 700; font-size: 16px;
+            margin: 0 auto 16px;
+        }
+        .step-card h4 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .step-card p { font-size: 13px; color: #A0A0B0; line-height: 1.5; }
+
+        /* ── EDA Section ── */
+        .eda-section {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 40px 80px;
+        }
+        .eda-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .eda-tab {
+            padding: 7px 18px;
+            border-radius: 20px;
+            border: 1px solid #2D2D3F;
+            background: transparent;
+            color: #A0A0B0;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .eda-tab.active, .eda-tab:hover {
+            background: #4E9AF1;
+            color: white;
+            border-color: #4E9AF1;
+        }
+        .eda-graphs-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        .eda-graph-card {
+            background: #1A1A2E;
+            border: 1px solid #2D2D3F;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .eda-graph-card:hover {
+            transform: translateY(-3px);
+            border-color: #4E9AF1;
+        }
+        .eda-graph-card img { width: 100%; display: block; }
+        .eda-graph-card .graph-label {
+            padding: 12px 16px;
+            font-size: 13px;
+            color: #A0A0B0;
+            border-top: 1px solid #2D2D3F;
+            font-weight: 500;
+        }
+        .eda-loading {
+            text-align: center;
+            padding: 60px;
+            color: #A0A0B0;
+            grid-column: span 2;
+        }
+
+        /* ── Upload ── */
+        .upload-section {
+            max-width: 700px;
+            margin: 0 auto 30px;
+            padding: 0 20px;
+        }
+        .upload-title {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .upload-sub {
+            text-align: center;
+            color: #A0A0B0;
+            margin-bottom: 30px;
+            font-size: 15px;
+        }
+        .upload-card {
+            background: #1A1A2E;
+            border: 2px dashed #2D2D3F;
+            border-radius: 16px;
+            padding: 50px;
+            text-align: center;
+            transition: border-color 0.3s;
+            cursor: pointer;
+        }
+        .upload-card:hover { border-color: #4E9AF1; }
+        .upload-card.dragover {
+            border-color: #00C897;
+            background: #0d1f1a;
+        }
+        .upload-icon { font-size: 56px; margin-bottom: 16px; }
+        .upload-card h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .upload-card p {
+            color: #A0A0B0;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+        #fileInput { display: none; }
+        .btn-upload {
+            background: linear-gradient(135deg, #4E9AF1, #A78BFA);
+            color: white; border: none;
+            padding: 12px 32px; border-radius: 8px;
+            font-size: 15px; font-weight: 600;
+            cursor: pointer;
+        }
+        .file-name { margin-top: 16px; font-size: 13px; color: #00C897; }
+        .btn-predict {
+            display: block; width: 100%; margin-top: 20px;
+            background: linear-gradient(135deg, #00C897, #4E9AF1);
+            color: white; border: none;
+            padding: 16px; border-radius: 10px;
+            font-size: 16px; font-weight: 700;
+            cursor: pointer; transition: opacity 0.2s;
+        }
+        .btn-predict:hover { opacity: 0.9; }
+        .btn-predict:disabled {
+            background: #2D2D3F;
+            color: #555;
+            cursor: not-allowed;
+        }
+
+        /* ── Loading ── */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            color: #4E9AF1;
+            font-size: 15px;
+        }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 3px solid #2D2D3F;
+            border-top-color: #4E9AF1;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Results ── */
+        .results-section {
+            display: none;
+            max-width: 1100px;
+            margin: 0 auto 60px;
+            padding: 0 20px;
+        }
+        .results-title {
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .result-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+        .result-card {
+            background: #1A1A2E;
+            border: 1px solid #2D2D3F;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        .result-card:hover { transform: translateY(-3px); }
+        .r-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .r-label {
+            font-size: 12px;
+            color: #A0A0B0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ── Risk Summary ── */
+        .risk-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+        .risk-card {
+            background: #1A1A2E;
+            border: 1px solid #2D2D3F;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .risk-icon { font-size: 36px; }
+        .risk-info .risk-val {
+            font-size: 26px;
+            font-weight: 700;
+        }
+        .risk-info .risk-lbl { font-size: 12px; color: #A0A0B0; }
+        .risk-info .risk-pct { font-size: 13px; margin-top: 2px; }
+
+        /* ── Charts ── */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+        .chart-card {
+            background: #1A1A2E;
+            border: 1px solid #2D2D3F;
+            border-radius: 12px;
+            padding: 24px;
+        }
+        .chart-card h4 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .chart-card p {
+            font-size: 12px;
+            color: #A0A0B0;
+            margin-bottom: 16px;
+        }
+
+        /* ── Recommendations ── */
+        .rec-section {
+            background: #1A1A2E;
+            border: 1px solid #2D2D3F;
+            border-radius: 12px;
+            padding: 28px;
+            margin-bottom: 30px;
+        }
+        .rec-section h4 {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .rec-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+        }
+        .rec-item {
+            background: #0F1117;
+            border-radius: 10px;
+            padding: 16px;
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            border-left: 3px solid #4E9AF1;
+        }
+        .rec-item.red    { border-left-color: #FF4C6A; }
+        .rec-item.green  { border-left-color: #00C897; }
+        .rec-item.purple { border-left-color: #A78BFA; }
+        .rec-item.orange { border-left-color: #FFA552; }
+        .rec-emoji { font-size: 24px; }
+        .rec-text h5 {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .rec-text p { font-size: 12px; color: #A0A0B0; line-height: 1.5; }
+
+        /* ── Table ── */
+        .table-card {
+            background: #1A1A2E;
+            border: 1px solid #2D2D3F;
+            border-radius: 12px;
+            padding: 24px;
+            overflow-x: auto;
+            margin-bottom: 30px;
+        }
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .table-header h4 { font-size: 15px; font-weight: 600; }
+        .table-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .search-input {
+            background: #0F1117;
+            border: 1px solid #2D2D3F;
+            color: #E0E0E0;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            outline: none;
+            width: 190px;
+            transition: border-color 0.2s;
+        }
+        .search-input:focus { border-color: #4E9AF1; }
+        .btn-export {
+            background: linear-gradient(135deg, #00C897, #4E9AF1);
+            color: white; border: none;
+            padding: 6px 18px; border-radius: 20px;
+            font-size: 12px; font-weight: 600;
+            cursor: pointer; transition: opacity 0.2s;
+        }
+        .btn-export:hover { opacity: 0.85; }
+        .filter-btns { display: flex; gap: 8px; }
+        .filter-btn {
+            padding: 5px 14px; border-radius: 20px;
+            border: 1px solid #2D2D3F;
+            background: transparent; color: #A0A0B0;
+            font-size: 12px; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .filter-btn.active,
+        .filter-btn:hover {
+            background: #4E9AF1;
+            color: white;
+            border-color: #4E9AF1;
+        }
+        .filter-btn.high.active   { background: #FF4C6A; border-color: #FF4C6A; }
+        .filter-btn.medium.active { background: #FFA552; border-color: #FFA552; }
+        .filter-btn.low.active    { background: #00C897; border-color: #00C897; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th {
+            background: #0F1117;
+            padding: 10px 14px;
+            text-align: left;
+            color: #A0A0B0;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+        td { padding: 10px 14px; border-bottom: 1px solid #2D2D3F; }
+        tr:hover td { background: #16213e; }
+        .badge {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .badge-high   { background: #3d1520; color: #FF4C6A; }
+        .badge-medium { background: #2d2010; color: #FFA552; }
+        .badge-low    { background: #0d2d1a; color: #00C897; }
+        .badge-churn  { background: #3d1520; color: #FF4C6A; }
+        .badge-stay   { background: #0d2d1a; color: #00C897; }
+
+        /* ── Counter animate ── */
+        @keyframes countUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0);    }
+        }
+        .count-anim { animation: countUp 0.5s ease forwards; }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: #555;
+            font-size: 13px;
+            border-top: 1px solid #2D2D3F;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <div class="logo">Churn<span>AI</span></div>
+    <div class="nav-links">
+        <a href="#">Home</a>
+        <a href="#eda-section">Analysis</a>
+        <a href="#predict-section">Predict</a>
+        <a href="/dashboard">Dashboard</a>
+    </div>
+</nav>
+
+<!-- Hero -->
+<section class="landing">
+    <div class="landing-badge">🤖 AI Powered Churn Analysis</div>
+    <h1>Predict Customer<br>Churn Instantly</h1>
+    <p>Upload your customer data and get AI-powered predictions,
+       risk analysis, and actionable recommendations in seconds.</p>
+    <div class="hero-btns">
+        <a href="#predict-section" class="btn-primary">🚀 Start Predicting</a>
+        <a href="/dashboard" class="btn-secondary">📊 View Dashboard</a>
+    </div>
+</section>
+
+<!-- Features -->
+<section class="section">
+    <div class="section-title">Why ChurnAI?</div>
+    <div class="section-sub">Everything you need to understand and reduce customer churn</div>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">🤖</div>
+            <h3>ML-Powered Predictions</h3>
+            <p>Random Forest model trained on real telecom data with 76%+ accuracy and 83% ROC-AUC score.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <h3>Interactive Analytics</h3>
+            <p>Beautiful charts showing churn patterns by contract type, tenure, and service usage.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">⚠️</div>
+            <h3>Risk Level Scoring</h3>
+            <p>Each customer gets a High, Medium, or Low risk score with churn probability percentage.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">💡</div>
+            <h3>Smart Recommendations</h3>
+            <p>Actionable retention strategies based on your specific churn patterns and data.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">📁</div>
+            <h3>Dynamic CSV Upload</h3>
+            <p>Drag and drop any customer CSV file — model auto-processes and predicts instantly.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">⬇️</div>
+            <h3>Export Results</h3>
+            <p>Download complete prediction results as CSV with risk levels and probabilities.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Banner -->
+<div class="stats-banner">
+    <div class="stats-inner">
+        <div class="stat-item">
+            <div class="val">7,032</div>
+            <div class="lbl">Customers Analyzed</div>
+        </div>
+        <div class="stat-item">
+            <div class="val" style="color:#00C897">76.6%</div>
+            <div class="lbl">Model Accuracy</div>
+        </div>
+        <div class="stat-item">
+            <div class="val" style="color:#A78BFA">83%</div>
+            <div class="lbl">ROC-AUC Score</div>
+        </div>
+        <div class="stat-item">
+            <div class="val" style="color:#FFA552">3</div>
+            <div class="lbl">Risk Levels</div>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works -->
+<section class="section" style="padding-bottom:40px">
+    <div class="section-title">How It Works</div>
+    <div class="section-sub">4 simple steps to get churn insights</div>
+    <div class="steps-grid">
+        <div class="step-card">
+            <div class="step-num">1</div>
+            <h4>Upload CSV</h4>
+            <p>Upload your customer data file in CSV format</p>
+        </div>
+        <div class="step-card">
+            <div class="step-num">2</div>
+            <h4>AI Analysis</h4>
+            <p>Our ML model processes and analyzes each customer</p>
+        </div>
+        <div class="step-card">
+            <div class="step-num">3</div>
+            <h4>Risk Scoring</h4>
+            <p>Every customer gets a churn probability and risk level</p>
+        </div>
+        <div class="step-card">
+            <div class="step-num">4</div>
+            <h4>Take Action</h4>
+            <p>Use recommendations to retain at-risk customers</p>
+        </div>
+    </div>
+</section>
+
+<!-- EDA Section -->
+<div id="eda-section" style="padding-top:40px">
+    <div class="eda-section">
+        <div class="section-title">📈 Exploratory Data Analysis</div>
+        <div class="section-sub">
+            Visual insights from the training dataset — before predictions
+        </div>
+        <div class="eda-tabs">
+            <button class="eda-tab active"
+                    onclick="showEdaGroup('eda',this)">
+                📊 EDA Graphs
+            </button>
+            <button class="eda-tab"
+                    onclick="showEdaGroup('model',this)">
+                🤖 Model Results
+            </button>
+            <button class="eda-tab"
+                    onclick="showEdaGroup('all',this)">
+                🔍 Show All
+            </button>
+        </div>
+        <div class="eda-graphs-grid" id="edaGrid">
+            <div class="eda-loading">
+                <div class="spinner"
+                     style="margin:0 auto 12px"></div>
+                Loading analysis graphs...
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Predict Section -->
+<div id="predict-section" style="padding-top:40px;padding-bottom:20px">
+    <div class="upload-section">
+        <div class="upload-title">🔮 Run Prediction</div>
+        <div class="upload-sub">
+            Upload your customer CSV to get instant predictions
+        </div>
+        <div class="upload-card" id="uploadCard"
+             ondragover="handleDragOver(event)"
+             ondragleave="handleDragLeave(event)"
+             ondrop="handleDrop(event)">
+            <div class="upload-icon">📂</div>
+            <h3>Upload Customer CSV File</h3>
+            <p>Drag & drop your file here or click to browse<br>
+               Supports: .csv files</p>
+            <input type="file" id="fileInput" accept=".csv"
+                   onchange="handleFileSelect(event)">
+            <button class="btn-upload"
+                    onclick="document.getElementById('fileInput').click()">
+                Choose File
+            </button>
+            <div class="file-name" id="fileName"></div>
+        </div>
+        <button class="btn-predict" id="predictBtn"
+                onclick="runPrediction()" disabled>
+            🔮 Run Prediction
+        </button>
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            Analyzing customer data...
+        </div>
+    </div>
+</div>
+
+<!-- Results Section -->
+<div class="results-section" id="resultsSection">
+    <h2 class="results-title">📊 Prediction Results</h2>
+
+    <!-- Summary Cards -->
+    <div class="result-cards">
+        <div class="result-card">
+            <div class="r-value" style="color:#4E9AF1"
+                 id="r-total">0</div>
+            <div class="r-label">Total Customers</div>
+        </div>
+        <div class="result-card">
+            <div class="r-value" style="color:#FF4C6A"
+                 id="r-churned">0</div>
+            <div class="r-label">Predicted Churned</div>
+        </div>
+        <div class="result-card">
+            <div class="r-value" style="color:#00C897"
+                 id="r-stayed">0</div>
+            <div class="r-label">Predicted Stayed</div>
+        </div>
+        <div class="result-card">
+            <div class="r-value" style="color:#A78BFA"
+                 id="r-rate">0%</div>
+            <div class="r-label">Churn Rate</div>
+        </div>
+    </div>
+
+    <!-- Risk Summary -->
+    <div class="risk-summary">
+        <div class="risk-card">
+            <div class="risk-icon">🔴</div>
+            <div class="risk-info">
+                <div class="risk-val" style="color:#FF4C6A"
+                     id="risk-high-count">0</div>
+                <div class="risk-lbl">High Risk Customers</div>
+                <div class="risk-pct" style="color:#FF4C6A"
+                     id="risk-high-pct">0% of total</div>
+            </div>
+        </div>
+        <div class="risk-card">
+            <div class="risk-icon">🟡</div>
+            <div class="risk-info">
+                <div class="risk-val" style="color:#FFA552"
+                     id="risk-med-count">0</div>
+                <div class="risk-lbl">Medium Risk Customers</div>
+                <div class="risk-pct" style="color:#FFA552"
+                     id="risk-med-pct">0% of total</div>
+            </div>
+        </div>
+        <div class="risk-card">
+            <div class="risk-icon">🟢</div>
+            <div class="risk-info">
+                <div class="risk-val" style="color:#00C897"
+                     id="risk-low-count">0</div>
+                <div class="risk-lbl">Low Risk Customers</div>
+                <div class="risk-pct" style="color:#00C897"
+                     id="risk-low-pct">0% of total</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-grid">
+        <div class="chart-card">
+            <h4>Churn vs Retained</h4>
+            <p>Overall prediction distribution</p>
+            <canvas id="doughnutChart" height="220"></canvas>
+        </div>
+        <div class="chart-card">
+            <h4>Risk Level Distribution</h4>
+            <p>Customers by risk category</p>
+            <canvas id="riskChart" height="220"></canvas>
+        </div>
+        <div class="chart-card">
+            <h4>Churn by Contract Type</h4>
+            <p>Customer count per contract</p>
+            <canvas id="contractChart" height="220"></canvas>
+        </div>
+        <div class="chart-card">
+            <h4>Churn Probability Distribution</h4>
+            <p>How confident is the model?</p>
+            <canvas id="probChart" height="220"></canvas>
+        </div>
+    </div>
+
+    <!-- Recommendations -->
+    <div class="rec-section">
+        <h4>💡 Actionable Recommendations</h4>
+        <div class="rec-grid" id="recGrid"></div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-card">
+        <div class="table-header">
+            <h4>Customer Prediction Details</h4>
+            <div class="table-controls">
+                <input type="text"
+                       id="searchInput"
+                       class="search-input"
+                       placeholder="🔍 Search Customer ID..."
+                       oninput="searchTable(this.value)">
+                <button class="btn-export" onclick="exportCSV()">
+                    ⬇️ Export CSV
+                </button>
+                <div class="filter-btns">
+                    <button class="filter-btn active"
+                            onclick="filterTable('all',this)">
+                        All
+                    </button>
+                    <button class="filter-btn high"
+                            onclick="filterTable('High',this)">
+                        🔴 High
+                    </button>
+                    <button class="filter-btn medium"
+                            onclick="filterTable('Medium',this)">
+                        🟡 Medium
+                    </button>
+                    <button class="filter-btn low"
+                            onclick="filterTable('Low',this)">
+                        🟢 Low
+                    </button>
+                </div>
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Customer ID</th>
+                    <th>Prediction</th>
+                    <th>Churn Probability</th>
+                    <th>Risk Level</th>
+                </tr>
+            </thead>
+            <tbody id="resultsTable"></tbody>
+        </table>
+    </div>
+</div>
+
+<footer>
+    ChurnAI &nbsp;|&nbsp; Customer Churn Prediction System
+    &nbsp;|&nbsp; Powered by Random Forest ML Model
+    &nbsp;|&nbsp; Pratinik Infotech Internship 2026
+</footer>
+
+<script>
+let selectedFile  = null;
+let allRows       = [];
+let currentFilter = 'all';
+let doughnutChart, riskChart, contractChart, probChart;
+
+// ── EDA Graph Tabs ─────────────────────────────────────
+const edaFiles   = ['plot1_','plot2_','plot3_','plot4_','plot5_'];
+const modelFiles = ['plot6_','plot7_','plot8_','plot9_'];
+
+function showEdaGroup(group, btn) {
+    document.querySelectorAll('.eda-tab')
+        .forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (!window.edaData) return;
+    let filtered = window.edaData;
+    if (group === 'eda')
+        filtered = window.edaData.filter(g =>
+            edaFiles.some(p => g.file.startsWith(p)));
+    else if (group === 'model')
+        filtered = window.edaData.filter(g =>
+            modelFiles.some(p => g.file.startsWith(p)));
+    renderEdaGrid(filtered);
+}
+
+function renderEdaGrid(graphs) {
+    const grid = document.getElementById('edaGrid');
+    if (!graphs.length) {
+        grid.innerHTML =
+            '<div class="eda-loading">No graphs found.</div>';
+        return;
+    }
+    grid.innerHTML = graphs.map(g => `
+        <div class="eda-graph-card">
+            <img src="data:image/png;base64,${g.data}"
+                 alt="${g.title}">
+            <div class="graph-label">📊 ${g.title}</div>
+        </div>`).join('');
+}
+
+fetch('/eda-graphs')
+    .then(r => r.json())
+    .then(data => {
+        window.edaData = data.graphs;
+        renderEdaGrid(data.graphs.filter(g =>
+            edaFiles.some(p => g.file.startsWith(p))));
+    })
+    .catch(() => {
+        document.getElementById('edaGrid').innerHTML =
+            '<div class="eda-loading">Could not load graphs.</div>';
+    });
+
+// ── File Upload ────────────────────────────────────────
+function handleFileSelect(e) {
+    selectedFile = e.target.files[0];
+    if (selectedFile) {
+        document.getElementById('fileName').textContent =
+            '✓ ' + selectedFile.name;
+        document.getElementById('predictBtn').disabled = false;
+    }
+}
+function handleDragOver(e) {
+    e.preventDefault();
+    document.getElementById('uploadCard')
+        .classList.add('dragover');
+}
+function handleDragLeave() {
+    document.getElementById('uploadCard')
+        .classList.remove('dragover');
+}
+function handleDrop(e) {
+    e.preventDefault();
+    document.getElementById('uploadCard')
+        .classList.remove('dragover');
+    selectedFile = e.dataTransfer.files[0];
+    if (selectedFile) {
+        document.getElementById('fileName').textContent =
+            '✓ ' + selectedFile.name;
+        document.getElementById('predictBtn').disabled = false;
+    }
+}
+
+// ── Animated Counter ───────────────────────────────────
+function animateCount(id, target, suffix = '') {
+    const el  = document.getElementById(id);
+    const dur = 1200, step = 16;
+    const inc = target / (dur / step);
+    let cur   = 0;
+    el.classList.add('count-anim');
+    const t = setInterval(() => {
+        cur += inc;
+        if (cur >= target) { cur = target; clearInterval(t); }
+        el.textContent =
+            Math.floor(cur).toLocaleString() + suffix;
+    }, step);
+}
+
+// ── Prediction ─────────────────────────────────────────
+function runPrediction() {
+    if (!selectedFile) return;
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('predictBtn').disabled   = true;
+    document.getElementById('resultsSection').style.display = 'none';
+
+    const fd = new FormData();
+    fd.append('file', selectedFile);
+
+    fetch('/predict', { method: 'POST', body: fd })
+    .then(r => r.json())
+    .then(data => {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('predictBtn').disabled   = false;
+        if (data.error) {
+            alert('Error: ' + data.error); return;
+        }
+
+        // ── Animated summary cards
+        animateCount('r-total',   data.total);
+        animateCount('r-churned', data.churned);
+        animateCount('r-stayed',  data.not_churned);
+        animateCount('r-rate',    data.churn_rate, '%');
+
+        // ── Risk counts
+        const high   =
+            data.results.filter(r => r.risk === 'High').length;
+        const medium =
+            data.results.filter(r => r.risk === 'Medium').length;
+        const low    =
+            data.results.filter(r => r.risk === 'Low').length;
+        const tot    = data.results.length;
+
+        animateCount('risk-high-count', high);
+        animateCount('risk-med-count',  medium);
+        animateCount('risk-low-count',  low);
+
+        document.getElementById('risk-high-pct').textContent =
+            ((high / tot) * 100).toFixed(1) + '% of total';
+        document.getElementById('risk-med-pct').textContent  =
+            ((medium / tot) * 100).toFixed(1) + '% of total';
+        document.getElementById('risk-low-pct').textContent  =
+            ((low / tot) * 100).toFixed(1) + '% of total';
+
+        // ── Chart 1 — Doughnut
+        if (doughnutChart) doughnutChart.destroy();
+        doughnutChart = new Chart(
+            document.getElementById('doughnutChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Retained', 'Churned'],
+                datasets: [{
+                    data: [data.not_churned, data.churned],
+                    backgroundColor: ['#00C897', '#FF4C6A'],
+                    borderWidth: 0,
+                }]
+            },
+            options: {
+                cutout: '75%',
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#E0E0E0',
+                            font: { size: 13 }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx =>
+                                ` ${ctx.label}: `+
+                                `${ctx.raw.toLocaleString()} `+
+                                `(${((ctx.raw/data.total)*100)
+                                    .toFixed(1)}%)`
+                        }
+                    }
+                }
+            }
+        });
+
+        // ── Chart 2 — Risk Pie
+        if (riskChart) riskChart.destroy();
+        riskChart = new Chart(
+            document.getElementById('riskChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['High Risk','Medium Risk','Low Risk'],
+                datasets: [{
+                    data: [high, medium, low],
+                    backgroundColor:
+                        ['#FF4C6A','#FFA552','#00C897'],
+                    borderWidth: 0,
+                }]
+            },
+            options: {
+                cutout: '75%',
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#E0E0E0',
+                            font: { size: 13 }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx =>
+                                ` ${ctx.label}: ${ctx.raw} `+
+                                `(${((ctx.raw/tot)*100)
+                                    .toFixed(1)}%)`
+                        }
+                    }
+                }
+            }
+        });
+
+        // ── Chart 3 — Contract Bar
+        if (contractChart) contractChart.destroy();
+        contractChart = new Chart(
+            document.getElementById('contractChart'), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(data.contract_data),
+                datasets: [{
+                    label: 'Customers',
+                    data:  Object.values(data.contract_data),
+                    backgroundColor:
+                        ['#4E9AF1','#A78BFA','#FFA552'],
+                    borderRadius: 6,
+                    borderWidth:  0,
+                    barThickness: 35,
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: {
+                        ticks: { color: '#A0A0B0' },
+                        grid:  { color: '#1E1E2E'  }
+                    },
+                    y: {
+                        ticks: { color: '#A0A0B0' },
+                        grid:  { color: '#1E1E2E'  }
+                    }
+                }
+            }
+        });
+
+        // ── Chart 4 — Probability Histogram
+        if (probChart) probChart.destroy();
+        const buckets = new Array(10).fill(0);
+        data.results.forEach(r => {
+            buckets[Math.min(
+                Math.floor(r.probability / 10), 9)]++;
+        });
+        probChart = new Chart(
+            document.getElementById('probChart'), {
+            type: 'bar',
+            data: {
+                labels: ['0-10%','10-20%','20-30%','30-40%',
+                         '40-50%','50-60%','60-70%','70-80%',
+                         '80-90%','90-100%'],
+                datasets: [{
+                    label: 'Customers',
+                    data:  buckets,
+                    backgroundColor: buckets.map((_, i) =>
+                        i < 4 ? '#00C897' :
+                        i < 7 ? '#FFA552' : '#FF4C6A'),
+                    borderRadius: 4,
+                    borderWidth:  0,
+                    barThickness: 28,
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: {
+                        ticks: {
+                            color: '#A0A0B0',
+                            font: { size: 10 }
+                        },
+                        grid: { color: '#1E1E2E' }
+                    },
+                    y: {
+                        ticks: { color: '#A0A0B0' },
+                        grid:  { color: '#1E1E2E' }
+                    }
+                }
+            }
+        });
+
+        // ── Recommendations
+        const highPct = ((high / tot) * 100).toFixed(0);
+        document.getElementById('recGrid').innerHTML = [
+            {
+                cls: 'red', emoji: '🚨',
+                title: 'Target High-Risk Customers Immediately',
+                text: `${high} customers (${highPct}%) are at `+
+                      `high risk. Contact them with personalized `+
+                      `retention offers within 48 hours.`
+            },
+            {
+                cls: 'orange', emoji: '📋',
+                title: 'Promote Long-Term Contracts',
+                text: `Month-to-month customers churn most. `+
+                      `Offer discounts for switching to 1-year `+
+                      `or 2-year contracts.`
+            },
+            {
+                cls: 'purple', emoji: '🎯',
+                title: 'Early Engagement Program',
+                text: `New customers (0-12 months) are most `+
+                      `vulnerable. Create onboarding program `+
+                      `with check-ins and special benefits.`
+            },
+            {
+                cls: 'green', emoji: '💰',
+                title: 'Review Pricing Strategy',
+                text: `High monthly charges correlate with `+
+                      `churn. Consider tiered pricing or `+
+                      `loyalty rewards for long-tenure customers.`
+            },
+        ].map(r => `
+            <div class="rec-item ${r.cls}">
+                <div class="rec-emoji">${r.emoji}</div>
+                <div class="rec-text">
+                    <h5>${r.title}</h5>
+                    <p>${r.text}</p>
+                </div>
+            </div>`).join('');
+
+        // ── Table
+        allRows = data.results;
+        renderTable(allRows);
+
+        document.getElementById('resultsSection')
+            .style.display = 'block';
+        document.getElementById('resultsSection')
+            .scrollIntoView({ behavior: 'smooth' });
+    })
+    .catch(err => {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('predictBtn').disabled   = false;
+        alert('Error: ' + err);
+    });
+}
+
+// ── Table Render ───────────────────────────────────────
+function renderTable(rows) {
+    document.getElementById('resultsTable').innerHTML =
+        rows.map((row, i) => {
+            const pred = row.prediction === 1
+                ? '<span class="badge badge-churn">Churn</span>'
+                : '<span class="badge badge-stay">Stay</span>';
+            const risk = row.risk === 'High'
+                ? '<span class="badge badge-high">🔴 High</span>'
+                : row.risk === 'Medium'
+                ? '<span class="badge badge-medium">🟡 Medium</span>'
+                : '<span class="badge badge-low">🟢 Low</span>';
+            const color =
+                row.probability > 70 ? '#FF4C6A' :
+                row.probability > 40 ? '#FFA552' : '#00C897';
+            return `
+            <tr data-risk="${row.risk}">
+                <td style="color:#A0A0B0">${i + 1}</td>
+                <td><strong>${row.id}</strong></td>
+                <td>${pred}</td>
+                <td>
+                    <div style="display:flex;align-items:
+                        center;gap:10px">
+                        <div style="flex:1;background:#2D2D3F;
+                            border-radius:4px;height:8px;
+                            min-width:100px">
+                            <div style="width:${row.probability}%;
+                                background:${color};height:8px;
+                                border-radius:4px;
+                                transition:width 0.4s">
+                            </div>
+                        </div>
+                        <span style="min-width:48px;
+                            color:${color};font-weight:600">
+                            ${row.probability}%
+                        </span>
+                    </div>
+                </td>
+                <td>${risk}</td>
+            </tr>`;
+        }).join('');
+}
+
+// ── Filter ─────────────────────────────────────────────
+function filterTable(level, btn) {
+    currentFilter = level;
+    document.querySelectorAll('.filter-btn')
+        .forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const q = document.getElementById('searchInput')
+                      ?.value || '';
+    const f = q ? allRows.filter(r =>
+        r.id.toLowerCase().includes(q.toLowerCase()))
+        : allRows;
+    renderTable(level === 'all'
+        ? f : f.filter(r => r.risk === level));
+}
+
+// ── Search ─────────────────────────────────────────────
+function searchTable(q) {
+    const f = allRows.filter(r =>
+        r.id.toLowerCase().includes(q.toLowerCase()));
+    renderTable(currentFilter === 'all'
+        ? f : f.filter(r => r.risk === currentFilter));
+}
+
+// ── Export CSV ─────────────────────────────────────────
+function exportCSV() {
+    if (!allRows.length) {
+        alert('No data to export! Run prediction first.');
+        return;
+    }
+    const headers = [
+        'Sr No',
+        'Customer ID',
+        'Prediction',
+        'Churn Probability (%)',
+        'Risk Level'
+    ];
+    const rows = allRows.map((r, i) => [
+        i + 1,
+        r.id,
+        r.prediction === 1 ? 'Churn' : 'Stay',
+        r.probability,
+        r.risk,
+    ]);
+    const csv = [headers, ...rows]
+        .map(r => r.join(','))
+        .join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = 'churn_predictions.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>  

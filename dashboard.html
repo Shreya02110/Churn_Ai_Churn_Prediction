@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - ChurnAI</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0F1117;
+            color: #E0E0E0;
+            min-height: 100vh;
+        }
+
+        /* ── Navbar ── */
+        .navbar {
+            background: #1A1A2E;
+            padding: 16px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #2D2D3F;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .navbar .logo {
+            font-size: 22px;
+            font-weight: 700;
+            color: #4E9AF1;
+            letter-spacing: 1px;
+        }
+        .navbar .logo span { color: #00C897; }
+        .nav-links a {
+            color: #A0A0B0;
+            text-decoration: none;
+            margin-left: 30px;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: #4E9AF1; }
+
+        /* ── Page Header ── */
+        .page-header {
+            padding: 40px 40px 20px;
+            border-bottom: 1px solid #2D2D3F;
+            margin-bottom: 40px;
+        }
+        .page-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #E0E0E0;
+            margin-bottom: 6px;
+        }
+        .page-header p {
+            color: #A0A0B0;
+            font-size: 14px;
+        }
+
+        /* ── Main Container ── */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 40px 60px;
+        }
+
+        /* ── KPI Cards ── */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+        .kpi-card {
+            background: #1A1A2E;
+            border: 1px solid #2D2D3F;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .kpi-card:hover {
+            transform: translateY(-3px);
+            border-color: #4E9AF1;
+        }
+        .kpi-icon {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .kpi-value {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .kpi-label {
+            font-size: 11px;
+            color: #A0A0B0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ── Charts ── */
+        .charts-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        .charts-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        .chart-card {
+            background: #1A1A2E;
+            border: 1px solid #2D2D3F;
+            border-radius: 12px;
+            padding: 24px;
+        }
+        .chart-card h4 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #E0E0E0;
+        }
+        .chart-card p {
+            font-size: 12px;
+            color: #A0A0B0;
+            margin-bottom: 20px;
+        }
+
+        /* ── Insights ── */
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+        .insight-card {
+            background: #1A1A2E;
+            border: 1px solid #2D2D3F;
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid #4E9AF1;
+        }
+        .insight-card.red    { border-left-color: #FF4C6A; }
+        .insight-card.green  { border-left-color: #00C897; }
+        .insight-card.purple { border-left-color: #A78BFA; }
+        .insight-card h5 {
+            font-size: 13px;
+            color: #A0A0B0;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .insight-card p {
+            font-size: 14px;
+            color: #E0E0E0;
+            line-height: 1.5;
+        }
+
+        /* ── Model Info ── */
+        .model-card {
+            background: #1A1A2E;
+            border: 1px solid #2D2D3F;
+            border-radius: 12px;
+            padding: 28px;
+            margin-bottom: 24px;
+        }
+        .model-card h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #E0E0E0;
+        }
+        .model-metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+        .metric-item {
+            text-align: center;
+            padding: 16px;
+            background: #0F1117;
+            border-radius: 8px;
+            border: 1px solid #2D2D3F;
+        }
+        .metric-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: #4E9AF1;
+            margin-bottom: 4px;
+        }
+        .metric-label {
+            font-size: 12px;
+            color: #A0A0B0;
+        }
+
+        /* ── Loading ── */
+        .loading-overlay {
+            text-align: center;
+            padding: 60px;
+            color: #A0A0B0;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #2D2D3F;
+            border-top-color: #4E9AF1;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Footer ── */
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: #555;
+            font-size: 13px;
+            border-top: 1px solid #2D2D3F;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <div class="logo">Churn<span>AI</span></div>
+    <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/dashboard">Dashboard</a>
+    </div>
+</nav>
+
+<!-- Page Header -->
+<div class="page-header">
+    <h1>📊 Analytics Dashboard</h1>
+    <p>Real-time insights from Telco customer churn data</p>
+</div>
+
+<div class="container" id="mainContent">
+    <div class="loading-overlay">
+        <div class="spinner"></div>
+        Loading dashboard data...
+    </div>
+</div>
+
+<footer>
+    Customer Churn Prediction System &nbsp;|&nbsp;
+    Powered by Random Forest ML Model &nbsp;|&nbsp;
+    Pratinik Infotech Internship 2026
+</footer>
+
+<script>
+fetch('/stats')
+    .then(r => r.json())
+    .then(data => {
+        const churned    = data.churned;
+        const retained   = data.total - churned;
+        const churnRate  = data.churn_rate;
+
+        document.getElementById('mainContent').innerHTML = `
+
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-icon">👥</div>
+                <div class="kpi-value" style="color:#4E9AF1">
+                    ${data.total.toLocaleString()}
+                </div>
+                <div class="kpi-label">Total Customers</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon">📉</div>
+                <div class="kpi-value" style="color:#FF4C6A">
+                    ${churnRate}%
+                </div>
+                <div class="kpi-label">Churn Rate</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon">✅</div>
+                <div class="kpi-value" style="color:#00C897">
+                    ${retained.toLocaleString()}
+                </div>
+                <div class="kpi-label">Retained</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon">📅</div>
+                <div class="kpi-value" style="color:#A78BFA">
+                    ${data.avg_tenure}
+                </div>
+                <div class="kpi-label">Avg Tenure (mo)</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon">💰</div>
+                <div class="kpi-value" style="color:#FFA552">
+                    $${data.avg_charges}
+                </div>
+                <div class="kpi-label">Avg Monthly Charges</div>
+            </div>
+        </div>
+
+        <!-- Charts Row 1 -->
+        <div class="charts-row">
+            <div class="chart-card">
+                <h4>Churn vs Retained</h4>
+                <p>Overall customer distribution</p>
+                <canvas id="overallChart" height="200"></canvas>
+            </div>
+            <div class="chart-card">
+                <h4>Churn Rate by Contract Type</h4>
+                <p>Month-to-month contracts churn most</p>
+                <canvas id="contractChart" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- Charts Row 2 -->
+        <div class="charts-row">
+            <div class="chart-card">
+                <h4>Churn Rate by Internet Service</h4>
+                <p>Fiber optic users churn more</p>
+                <canvas id="internetChart" height="200"></canvas>
+            </div>
+            <div class="chart-card">
+                <h4>Churn Rate by Tenure Group</h4>
+                <p>New customers churn most in early months</p>
+                <canvas id="tenureChart" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- Model Performance -->
+        <div class="model-card">
+            <h4>🤖 ML Model Performance</h4>
+            <div class="model-metrics">
+                <div class="metric-item">
+                    <div class="metric-value">76.62%</div>
+                    <div class="metric-label">Accuracy</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value" style="color:#00C897">
+                        82.82%
+                    </div>
+                    <div class="metric-label">ROC-AUC Score</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value" style="color:#A78BFA">
+                        88%
+                    </div>
+                    <div class="metric-label">Precision (No Churn)</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value" style="color:#FFA552">
+                        Random Forest
+                    </div>
+                    <div class="metric-label">Best Model</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Insights -->
+        <div class="insights-grid">
+            <div class="insight-card red">
+                <h5>🔴 High Risk Factor</h5>
+                <p>Month-to-month contract customers
+                   churn at <strong>
+                   ${data.contract['Month-to-month']}%
+                   </strong> — highest among all contract types.</p>
+            </div>
+            <div class="insight-card green">
+                <h5>🟢 Retention Success</h5>
+                <p>Two-year contract customers have only
+                   <strong>${data.contract['Two year']}%</strong>
+                   churn rate — long-term contracts
+                   significantly improve retention.</p>
+            </div>
+            <div class="insight-card purple">
+                <h5>🟣 Tenure Insight</h5>
+                <p>Customers in first 12 months have
+                   <strong>
+                   ${data.tenure['0-12m']}%
+                   </strong> churn rate — early engagement
+                   is critical.</p>
+            </div>
+        </div>
+        `;
+
+        // Chart 1 — Overall doughnut
+        new Chart(document.getElementById('overallChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Retained', 'Churned'],
+                datasets: [{
+                    data: [retained, churned],
+                    backgroundColor: ['#00C897', '#FF4C6A'],
+                    borderWidth: 0,
+                }]
+            },
+            options: {
+                cutout: '65%',
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#E0E0E0',
+                            font: { size: 13 }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Chart 2 — Contract bar
+        const cKeys = Object.keys(data.contract);
+        const cVals = Object.values(data.contract);
+        new Chart(document.getElementById('contractChart'), {
+            type: 'bar',
+            data: {
+                labels: cKeys,
+                datasets: [{
+                    label: 'Churn Rate (%)',
+                    data: cVals,
+                    backgroundColor: ['#FF4C6A','#FFA552','#00C897'],
+                    borderRadius: 6,
+                    borderWidth: 0,
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: {
+                        ticks: { color: '#A0A0B0' },
+                        grid:  { color: '#1E1E2E'  }
+                    },
+                    y: {
+                        ticks: { color: '#A0A0B0' },
+                        grid:  { color: '#1E1E2E'  }
+                    }
+                }
+            }
+        });
+
+        // Chart 3 — Internet bar
+        const iKeys = Object.keys(data.internet);
+        const iVals = Object.values(data.internet);
+        new Chart(document.getElementById('internetChart'), {
+            type: 'bar',
+            data: {
+                labels: iKeys,
+                datasets: [{
+                    label: 'Churn Rate (%)',
+                    data: iVals,
+                    backgroundColor: ['#4E9AF1','#A78BFA','#FFA552'],
+                    borderRadius: 6,
+                    borderWidth: 0,
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: {
+                        ticks: { color: '#A0A0B0' },
+                        grid:  { color: '#1E1E2E'  }
+                    },
+                    y: {
+                        ticks: { color: '#A0A0B0' },
+                        grid:  { color: '#1E1E2E'  }
+                    }
+                }
+            }
+        });
+
+        // Chart 4 — Tenure bar
+        const tKeys = Object.keys(data.tenure);
+        const tVals = Object.values(data.tenure);
+        new Chart(document.getElementById('tenureChart'), {
+            type: 'bar',
+            data: {
+                labels: tKeys,
+                datasets: [{
+                    label: 'Churn Rate (%)',
+                    data: tVals,
+                    backgroundColor: ['#FF4C6A','#FFA552',
+                                      '#4E9AF1','#00C897'],
+                    borderRadius: 6,
+                    borderWidth: 0,
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: {
+                        ticks: { color: '#A0A0B0' },
+                        grid:  { color: '#1E1E2E'  }
+                    },
+                    y: {
+                        ticks: { color: '#A0A0B0' },
+                        grid:  { color: '#1E1E2E'  }
+                    }
+                }
+            }
+        });
+    })
+    .catch(err => {
+        document.getElementById('mainContent').innerHTML =
+            '<div class="loading-overlay">Error loading data. ' +
+            'Make sure Flask server is running.</div>';
+    });
+</script>
+</body>
+</html> 
